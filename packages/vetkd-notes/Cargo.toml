@@ -1,7 +1,7 @@
 
 [package]
 name = "ic-vetkd-notes"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 description = "ic vetkd notes implementation to be used inside of a canister"
 license = "MIT"

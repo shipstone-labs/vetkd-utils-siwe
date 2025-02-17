@@ -5,7 +5,7 @@
     "Andreas Richter <708186+richtera@users.noreply.github.com>"
   ],
   "description": "vetkey client library",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "license": "MIT",
   "repository": {
     "type": "git",
