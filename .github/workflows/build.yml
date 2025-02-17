@@ -73,7 +73,6 @@ jobs:
       - name: Build docs
         run: |
           pnpm doc
-          find docs
       
       - name: Cargo publish
         if: ${{ steps.release-please.outputs['packages/vetkd-notes--release_created'] }}
