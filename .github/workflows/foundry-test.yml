@@ -24,11 +24,13 @@ jobs:
 
       - name: Run Forge build
         run: |
+          cd ./packages/erc1155
           forge --version
           forge build --sizes
         id: build
 
       - name: Run Forge tests
         run: |
+          cd ./packages/erc1155
           forge test -vvv
         id: test

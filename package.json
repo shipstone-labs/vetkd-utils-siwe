@@ -25,6 +25,7 @@
     "@dfinity/candid": "^2.2.0",
     "@dfinity/identity": "^2.2.0",
     "@dfinity/principal": "^2.2.0",
+    "solhint": "^5.0.5",
     "typedoc": "^0.27.6"
   },
   "devDependencies": {

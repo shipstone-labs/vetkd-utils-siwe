@@ -1,0 +1,12 @@
+{
+  "solidity": {
+    "include": ["contracts/**/*.sol", "lib/**/*.sol"],
+    "compiler": {
+      "remappings": {
+        "@openzeppelin/": "lib/openzeppelin-contracts/",
+        "@rari-capital/": "lib/rari-capital/",
+        "@foundry/": "lib/foundry/"
+      }
+    }
+  }
+}

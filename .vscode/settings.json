@@ -1,0 +1,10 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.solhint": "always"
+  },
+  "solidity.linter": "solhint",
+  "[solidity]": {
+    "editor.defaultFormatter": "JuanBlanco.solidity",
+    "editor.formatOnSave": true
+  }
+}
