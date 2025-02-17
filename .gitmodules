@@ -1,0 +1,6 @@
+[submodule "packages/erc1155/lib/forge-std"]
+	path = packages/erc1155/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "packages/erc1155/lib/openzeppelin-contracts"]
+	path = packages/erc1155/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
