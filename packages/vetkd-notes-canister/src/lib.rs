@@ -1,50 +1,16 @@
-use crate::service::init_upgrade::SettingsInput;
-use crate::service::siwe_prepare_login::PrepareLoginOkResponse;
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
-use ic_cdk::api::set_certified_data;
 use ic_cdk_macros::*;
-use ic_certified_map::{fork_hash, labeled_hash, AsHashTree, Hash, RbTree};
-use ic_siwe::delegation::SignedDelegation;
-use ic_siwe::login::LoginDetails;
-use ic_siwe::signature_map::SignatureMap;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
-use ic_stable_structures::{storable::Blob, DefaultMemoryImpl, StableBTreeMap};
-use ic_stable_structures::{storable::Bound, StableCell, Storable};
+use ic_stable_structures::{
+    storable::Bound, DefaultMemoryImpl, StableBTreeMap, StableCell, Storable,
+};
 use ic_vetkd_notes::{vetkd_system_api_canister_id, EncryptedNote, NoteId, EVERYONE};
-use serde_bytes::ByteBuf;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::ops::Deref;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
-pub mod service;
-
-pub const LABEL_ASSETS: &[u8] = b"http_assets";
-pub const LABEL_SIG: &[u8] = b"sig";
-
-pub(crate) type AssetHashes = RbTree<&'static str, Hash>;
-
-pub(crate) struct State {
-    pub signature_map: RefCell<SignatureMap>,
-    pub asset_hashes: RefCell<AssetHashes>,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            signature_map: RefCell::new(SignatureMap::default()),
-            asset_hashes: RefCell::new(AssetHashes::default()),
-        }
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-pub(crate) struct Settings {
-    pub disable_eth_to_principal_mapping: bool,
-    pub disable_principal_to_eth_mapping: bool,
-}
 #[derive(CandidType, Deserialize, Default)]
 pub struct NoteIds {
     ids: Vec<NoteId>,
@@ -78,8 +44,6 @@ static MAX_NOTE_CHARS: usize = 100000;
 static MAX_SHARES_PER_NOTE: usize = 50;
 
 thread_local! {
-    static STATE: State = State::default();
-
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
@@ -105,23 +69,6 @@ thread_local! {
     static NOTE_SHARES: RefCell<StableBTreeMap<String, NoteIds, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with_borrow(|m| m.get(MemoryId::new(3))),
-        )
-    );
-
-    static SETTINGS: RefCell<Settings> = const { RefCell::new(Settings {
-        disable_eth_to_principal_mapping: false,
-        disable_principal_to_eth_mapping: false,
-    }) };
-
-    static PRINCIPAL_ADDRESS: RefCell<StableBTreeMap<Blob<29>, [u8;20], VirtualMemory<DefaultMemoryImpl>>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
-        )
-    );
-
-    static ADDRESS_PRINCIPAL: RefCell<StableBTreeMap<[u8;20], Blob<29>, VirtualMemory<DefaultMemoryImpl>>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1))),
         )
     );
 }
@@ -518,100 +465,3 @@ fn bls12_381_test_key_1() -> VetKDKeyId {
 }
 
 ic_cdk::export_candid!();
-
-pub(crate) fn update_root_hash(asset_hashes: &AssetHashes, signature_map: &SignatureMap) {
-    let prefixed_root_hash = fork_hash(
-        &labeled_hash(LABEL_ASSETS, &asset_hashes.root_hash()),
-        &labeled_hash(LABEL_SIG, &signature_map.root_hash()),
-    );
-    set_certified_data(&prefixed_root_hash[..]);
-}
-
-#[ic_cdk::pre_upgrade]
-fn pre_upgrade() {
-    ic_cdk::println!("Running pre_upgrade...");
-
-    // Save `SETTINGS`
-    let provider_settings_snapshot = SETTINGS.with(|s| s.borrow().clone());
-    ic_cdk::storage::stable_save((
-        provider_settings_snapshot.disable_eth_to_principal_mapping,
-        provider_settings_snapshot.disable_principal_to_eth_mapping,
-    ))
-    .expect("Failed to save SETTINGS");
-
-    // ✅ Extract `State` values into serializable versions
-    let state_snapshot = STATE.with(|s| {
-        let state = s;
-        // ✅ Convert `RbTree<Hash, RbTree<Hash, Unit>>` into `Vec<(Hash, Vec<Hash>)>`
-        let certified_map_vec: Vec<(Hash, Vec<Hash>)> = state
-            .signature_map
-            .borrow()
-            .deref()
-            .get_certified_map()
-            .iter()
-            .map(|(k, v)| (k.clone(), v.iter().cloned().collect()))
-            .collect();
-
-        // ✅ Convert `BinaryHeap<SigExpiration>` into `Vec<SigExpiration>`
-        let expiration_queue_vec: Vec<SigExpiration> = state
-            .signature_map
-            .borrow()
-            .deref()
-            .get_expiration_queue()
-            .clone()
-            .into_sorted_vec();
-
-        let asset_hashes_vec: Vec<(String, [u8; 32])> = state
-            .asset_hashes
-            .borrow()
-            .deref()
-            .iter()
-            .map(|(k, v)| (k.to_string(), *v)) // ✅ Convert `&str` to `String`
-            .collect();
-        (
-            state.signature_map.borrow().deref().clone(),
-            asset_hashes_vec,
-        )
-    });
-
-    // ✅ Save `State` (SignatureMap + AssetHashes)
-    ic_cdk::storage::stable_save((state_snapshot,)).expect("Failed to save STATE");
-
-    // Ensure Memory Manager handles allocation
-    MEMORY_MANAGER.with(|m| {
-        let _ = m.borrow_mut();
-    });
-
-    ic_cdk::println!("pre_upgrade completed.");
-}
-
-#[init]
-fn init(settings: SettingsInput) {
-    siwe_init(settings);
-}
-
-/// `post_upgrade` is called when the canister is upgraded. It initializes the SIWE library with the given settings.
-///
-/// Required fields are `domain`, `uri`, and `salt`. All other fields are optional.
-///
-/// ## 🛑 Important: Changing the `salt` or `uri` setting affects how user seeds are generated.
-/// This means that existing users will get a new principal id when they sign in. Tip: Don't change the `salt` or `uri`
-/// settings after users have started using the service!
-#[post_upgrade]
-fn upgrade(settings: SettingsInput) {
-    siwe_init(settings);
-
-    // Restore provider settings
-    let (disable_eth_to_principal_mapping, disable_principal_to_eth_mapping): (bool, bool) =
-        ic_cdk::storage::stable_restore().unwrap_or((false, false));
-
-    // Update the SETTINGS with restored values
-    SETTINGS.with(|s| {
-        let mut settings = s.borrow_mut();
-        settings.disable_eth_to_principal_mapping = disable_eth_to_principal_mapping;
-        settings.disable_principal_to_eth_mapping = disable_principal_to_eth_mapping;
-    });
-
-    ic_cdk::println!("Restored SETTINGS: disable_eth_to_principal_mapping = {}, disable_principal_to_eth_mapping = {}",
-        disable_eth_to_principal_mapping, disable_principal_to_eth_mapping);
-}
