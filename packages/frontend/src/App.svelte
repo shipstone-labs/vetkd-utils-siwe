@@ -17,7 +17,7 @@ import { siweIdentityStore } from "./store/siwe";
 
 // ✅ Initialize SIWE with your canisterId
 siweIdentityStore.init({
-	canisterId: process.env.VETKD_NOTES_CANISTER_ID || "",
+	canisterId: process.env.IC_SIWE_PROVIDER_CANISTER_ID || "",
 });
 
 // ✅ Cleanup when component is destroyed
