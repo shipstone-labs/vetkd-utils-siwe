@@ -8,7 +8,9 @@
     "target": "ESNext",
     "esModuleInterop": true, // Helps with CommonJS interop
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "outDir": "dist"
   },
   "include": [
     "src/**/*",

@@ -9,6 +9,7 @@ import { AuthClient } from "@dfinity/auth-client";
 import { addNotification, showError } from "./notifications";
 import type { JsonnableDelegationChain } from "@dfinity/identity/lib/cjs/identity/delegation";
 import { navigateTo } from "svelte-router-spa";
+import { doLogin } from "../lib/web3modal";
 
 // if (typeof global === "undefined") {
 //   var global = window; // ✅ Ensures `global` exists in browser
@@ -76,15 +77,16 @@ export function login() {
   const currentAuth = get(auth);
 
   if (currentAuth.state === "anonymous") {
-    currentAuth.client.login({
-      maxTimeToLive: BigInt(1800) * BigInt(1_000_000_000),
-      identityProvider:
-        process.env.DFX_NETWORK === "ic"
-          ? "https://identity.ic0.app/#authorize"
-          : `http://${process.env.INTERNET_IDENTITY_CANISTER_ID}.localhost:8000/#authorize`,
-      // `http://localhost:8000?canisterId=${process.env.INTERNET_IDENTITY_CANISTER_ID}#authorize`,
-      onSuccess: () => authenticate(currentAuth.client),
-    });
+    doLogin("Please sign this message to authenticate with the app.");
+    // currentAuth.client.login({
+    //   maxTimeToLive: BigInt(1800) * BigInt(1_000_000_000),
+    //   identityProvider:
+    //     process.env.DFX_NETWORK === "ic"
+    //       ? "https://identity.ic0.app/#authorize"
+    //       : `http://${process.env.INTERNET_IDENTITY_CANISTER_ID}.localhost:8000/#authorize`,
+    //   // `http://localhost:8000?canisterId=${process.env.INTERNET_IDENTITY_CANISTER_ID}#authorize`,
+    //   onSuccess: () => authenticate(currentAuth.client),
+    // });
   }
 }
 

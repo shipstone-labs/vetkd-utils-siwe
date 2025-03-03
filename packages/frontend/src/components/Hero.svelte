@@ -2,6 +2,8 @@
 import { type AuthState, login } from "../store/auth";
 import DisclaimerCopy from "./DisclaimerCopy.svelte";
 import Spinner from "./Spinner.svelte";
+import "../lib/web3modal";
+import Header from "./Header.svelte";
 
 export let auth: Extract<
 	AuthState,
@@ -16,6 +18,7 @@ export let auth: Extract<
 >;
 </script>
 
+<Header/>
 <div class="hero min-h-screen pt-8 sm:pt-0 content-start sm:content-center">
   <div class="text-center hero-content ">
     <div class="max-w-xl ">

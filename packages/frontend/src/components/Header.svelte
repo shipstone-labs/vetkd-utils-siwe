@@ -1,4 +1,6 @@
-<script lang="ts"></script>
+<script lang="ts">
+
+</script>
 <div class="w-full navbar bg-base-100 border-b border-base-300">
   <div class="flex-none lg:hidden">
     <label for="my-drawer-3" class="btn btn-square btn-ghost">
@@ -22,5 +24,6 @@
   </div>
   <div>
     <slot name="actions" />
+    <w3m-button />
   </div>
 </div>

@@ -96,23 +96,40 @@ dfx start --clean
 If you see an error `Failed to set socket of tcp builder to 0.0.0.0:8000`, make sure that the port `8000` is not occupied, e.g., by the previously run Docker command (you might want to stop the Docker daemon whatsoever for this step).
 :::
 
-### Step 5: Install a local [Internet Identity (II)](https://wiki.internetcomputer.org/wiki/What_is_Internet_Identity) canister:
+### Step 5:. Deploy the encrypted notes backend canister:
 
-:::info 
+```sh
+dfx deploy "vetkd_notes"
+```
+⚠️ Before deploying the Rust canister, you should first run `rustup target add wasm32-unknown-unknown`.
+
+### Step 6: Install a local [SIWE Provider](https://github.com/kristoferlund/ic-siwe/tree/main/packages/ic_siwe_provider) canister:
+
+:::info
 If you have multiple `dfx` identities set up, ensure you are using the identity you intend to use with the `--identity` flag.
 :::
    1. To install and deploy a canister run:
       ```sh
-      dfx deploy internet_identity --argument '(null)'
+      dfx deploy ic_siwe_provider --argument $'(
+          record {
+              domain = "127.0.0.1";
+              uri = "http://127.0.0.1:5173";
+              salt = "mysecretsalt123";
+              chain_id = opt 1;
+              scheme = opt "http";
+              statement = opt "Login to the app";
+              sign_in_expires_in = opt 300000000000;
+              session_expires_in = opt 604800000000000;
+              targets = opt vec {
+                  "'$(dfx canister id ic_siwe_provider)'";
+                  "'$(dfx canister id vetkd_notes)'";
+              };
+          }
+      )'
       ```
-   2. To print the Internet Identity URL, run:
-      ```sh
-      pnpm print-dfx-ii
-      ```
-   3. Visit the URL from above and create at least one local internet identity.
 
-### Step 6: Install the vetKD system API canister:
-   1. Ensure the Canister SDK (dfx) uses the canister ID that is hard-coded in the backend canister Rust source code:
+### Step 7: Install the vetKD system API canister:
+   1. Ensure the Canister SDK (dfx) uses the canister ID that is hard-coded in the backend canister Rust source code. NOTE: This was internally renamed as chainkey_testing_canister.
       ```sh
       # NOTE: This is the canister ID specified in the source code.
       # for your own deployment you have to create a new one or wait
@@ -123,13 +140,6 @@ If you have multiple `dfx` identities set up, ensure you are using the identity 
       ```sh
       dfx deploy vetkd_system_api
       ```
-
-### Step 7:. Deploy the encrypted notes backend canister:
-
-```sh
-dfx deploy "vetkd_notes"
-```
-⚠️ Before deploying the Rust canister, you should first run `rustup target add wasm32-unknown-unknown`.
 
 ### Step 8: Update the generated canister interface bindings: 
 
