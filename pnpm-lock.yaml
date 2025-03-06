@@ -52,8 +52,8 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2(rollup@4.32.1)
       '@shipstone-labs/ic-vetkd-notes-client':
-        specifier: workspace:^
-        version: link:../vetkd-notes-client
+        specifier: ^0.1.13
+        version: 0.1.13(@dfinity/candid@2.2.0)(@dfinity/principal@2.2.0)
       '@tanstack/react-query':
         specifier: ^5.66.7
         version: 5.66.7(react@19.0.0)
@@ -2828,6 +2828,16 @@ packages:
 
   /@shikijs/vscode-textmate@10.0.1:
     resolution: {integrity: sha512-fTIQwLF+Qhuws31iw7Ncl1R3HUDtGwIipiJ9iU+UsDUwMhegFcQKQHd51nZjb7CArq0MvON8rbgCGQYWHUKAdg==}
+    dev: false
+
+  /@shipstone-labs/ic-vetkd-notes-client@0.1.13(@dfinity/candid@2.2.0)(@dfinity/principal@2.2.0):
+    resolution: {integrity: sha512-+uLDLNUlcRo+tkZJNCOxq9clKW5zCkVNuTK43qO3UajFxTDVy0yZeEifjpAbU9nUB/5LMbvNlu+GDa4iMi04sA==}
+    dependencies:
+      '@dfinity/agent': 2.2.0(@dfinity/candid@2.2.0)(@dfinity/principal@2.2.0)
+      idb-keyval: 6.2.1
+    transitivePeerDependencies:
+      - '@dfinity/candid'
+      - '@dfinity/principal'
     dev: false
 
   /@sinclair/typebox@0.27.8:

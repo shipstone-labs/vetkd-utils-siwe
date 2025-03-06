@@ -1,9 +1,0 @@
-{
-  "name": "shipstone-labs-ic-vetkd-notes",
-  "scripts": {
-    "build": "cargo build",
-    "build:release": "cargo build --release",
-    "doc": "cargo doc --no-deps --document-private-items && rsync -a ../../target/wasm32-unknown-unknown/doc/ ../../docs/",
-    "deploy": "cargo publish"
-  }
-}
