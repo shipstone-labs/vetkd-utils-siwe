@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { NoteModel } from "../lib/note";
+import type { NoteModel } from "@shipstone-labs/ic-vetkd-notes-client";
 
 import { notesStore } from "../store/notes";
 import Header from "./Header.svelte";

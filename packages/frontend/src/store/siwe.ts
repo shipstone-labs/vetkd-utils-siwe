@@ -5,11 +5,18 @@ import {
   siweStateStore,
   type SiweIdentityContextType,
 } from "ic-siwe-js";
+import {
+  createActor,
+  CryptoService,
+  type BackendActor,
+} from "@shipstone-labs/ic-vetkd-notes-client";
 import type { ActorConfig, HttpAgentOptions } from "@dfinity/agent";
 
 // ✅ Define the store with default values
 function createSiweIdentityStore() {
-  const store = writable<SiweIdentityContextType>({
+  const store = writable<
+    SiweIdentityContextType & { actor?: BackendActor; crypto?: CryptoService }
+  >({
     isInitializing: false,
     isPreparingLogin: false,
     isPrepareLoginError: false,
@@ -33,6 +40,8 @@ function createSiweIdentityStore() {
     delegationChain: undefined,
     identity: undefined,
     identityAddress: undefined,
+    actor: undefined,
+    crypto: undefined,
   });
 
   let siweManager: SiweManager;
@@ -59,6 +68,14 @@ function createSiweIdentityStore() {
 
     // ✅ Subscribe to `siweStateStore` to sync state
     unsubscribeSiweStore = siweStateStore.subscribe(({ context }) => {
+      const actor = context.identity
+        ? createActor({
+            agentOptions: {
+              identity: context.identity,
+            },
+          })
+        : undefined;
+      const crypto = actor ? new CryptoService(actor) : undefined;
       store.update((s) => ({
         ...s,
         isInitializing: context.isInitializing,
@@ -79,6 +96,8 @@ function createSiweIdentityStore() {
         delegationChain: context.delegationChain,
         identity: context.identity,
         identityAddress: context.identityAddress,
+        actor,
+        crypto,
       }));
     });
   }
@@ -95,6 +114,7 @@ function createSiweIdentityStore() {
     subscribe: store.subscribe,
     init,
     destroy,
+    store,
   };
 }
 

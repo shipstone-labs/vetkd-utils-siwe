@@ -20,8 +20,8 @@ import TagEditor from "./TagEditor.svelte";
 import SharingEditor from "./SharingEditor.svelte";
 import Trash from "svelte-icons/fa/FaTrash.svelte";
 import { addNotification, showError } from "../store/notifications";
-import { auth } from "../store/auth";
 import Spinner from "./Spinner.svelte";
+import { siweIdentityStore } from "../store/siwe";
 
 export let currentRoute: CurrentRoute;
 
@@ -29,6 +29,7 @@ let editedNote: NoteModel;
 let editor: Editor;
 let updating = false;
 let deleting = false;
+const store = siweIdentityStore.store;
 // biome-ignore lint/style/useConst: <explanation>
 export let history: HistoryEntry[] = [];
 export let ownedByMe = true;
@@ -38,7 +39,8 @@ function addHistory(e: CustomEvent<HistoryEntry>) {
 }
 
 async function save() {
-	if ($auth.state !== "initialized") {
+	const { isLoginSuccess, identityAddress, actor, crypto } = $store;
+	if (!isLoginSuccess || !identityAddress || !actor || !crypto) {
 		return;
 	}
 	const html = editor.getHTML();
@@ -50,8 +52,8 @@ async function save() {
 			title: extractTitle(html),
 			updatedAt: Date.now(),
 		},
-		$auth.actor,
-		$auth.crypto,
+		actor,
+		crypto,
 	)
 		.catch((e) => {
 			showError(e, "Could not update note.");
@@ -73,22 +75,23 @@ async function save() {
 
 	addNotification({ type: "success", message: "IP Doc saved successfully" });
 
-	await refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+	await refreshNotes(actor, crypto).catch((e) =>
 		showError(e, "Could not refresh IP Doc."),
 	);
 }
 
 async function deleteNote() {
-	if ($auth.state !== "initialized") {
+	const { isLoginSuccess, identityAddress, actor, crypto } = $store;
+	if (!isLoginSuccess || !identityAddress || !actor || !crypto) {
 		return;
 	}
 	deleting = true;
-	await $auth.actor.delete_note(editedNote.id).catch((e) => {
+	await actor.delete_note(editedNote.id).catch((e: MouseEvent) => {
 		deleting = false;
 		showError(e, "Could not delete IP Doc.");
 	});
 
-	await refreshNotes($auth.actor, $auth.crypto)
+	await refreshNotes(actor, crypto)
 		.catch((e) => showError(e, "Could not refresh IP Docs."))
 		.finally(() => {
 			addNotification({
@@ -108,10 +111,11 @@ function removeTag(tag: string) {
 }
 
 function selfPrincipalString(): string {
-	if ($auth.state !== "initialized") {
-		throw new Error("expected the auth.state to be initialized");
+	const { isLoginSuccess, identity, actor, crypto } = $store;
+	if (!isLoginSuccess || !identity || !actor || !crypto) {
+		return "";
 	}
-	return $auth.client.getIdentity().getPrincipal().toString();
+	return identity.getPrincipal().toString();
 }
 
 $: {

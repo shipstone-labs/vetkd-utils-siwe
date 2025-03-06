@@ -110,6 +110,7 @@ If you have multiple `dfx` identities set up, ensure you are using the identity 
 :::
    1. To install and deploy a canister run:
       ```sh
+      dfx canister create ic_siwe_provider
       dfx deploy ic_siwe_provider --argument $'(
           record {
               domain = "127.0.0.1";
