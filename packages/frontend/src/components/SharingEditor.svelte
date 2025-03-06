@@ -1,5 +1,8 @@
 <script lang="ts">
-import type { NoteModel } from "@shipstone-labs/vetkd-notes-client";
+import type {
+	NoteModel,
+	PrincipalRule,
+} from "@shipstone-labs/ic-vetkd-notes-client";
 import { addUser, refreshNotes, removeUser } from "../store/notes";
 import { addNotification, showError } from "../store/notifications";
 import { siweIdentityStore } from "../store/siwe";
@@ -14,6 +17,8 @@ const store = siweIdentityStore.store;
 const dispatch = createEventDispatcher();
 
 let newSharing = "";
+const hasSharing = (u: [string, PrincipalRule]) =>
+	(u[0] || "everyone") === (newSharing || "everyone");
 // biome-ignore lint/style/useConst: <explanation>
 let newWhenValue = "";
 // biome-ignore lint/style/useConst: <explanation>
@@ -52,7 +57,7 @@ async function add() {
 		const value = dateValue(newWhenValue);
 		editedNote.users = [
 			...editedNote.users.filter(
-				(u: string[]) => u[0] !== (newSharing || "everyone"),
+				(u: [string, PrincipalRule]) => u[0] !== (newSharing || "everyone"),
 			),
 			[newSharing, { when: value ? [value] : [], was_read: false }],
 		];
@@ -97,7 +102,8 @@ async function remove(sharing: string) {
 	try {
 		await removeUser(editedNote.id, sharing, $store.actor);
 		editedNote.users = editedNote.users.filter(
-			(u: string[]) => (u[0] || "everyone") !== (sharing || "everyone"),
+			(u: [string, PrincipalRule]) =>
+				(u[0] || "everyone") !== (sharing || "everyone"),
 		);
 		addNotification({
 			type: "success",
@@ -199,7 +205,7 @@ async function remove(sharing: string) {
           {!ownedByMe ? 'hidden' : ''}
           {adding || removing ? 'loading' : ''}"
         on:click={add}
-        disabled={editedNote.users.find((u: string[]) => (u[0] || "everyone") === (newSharing || "everyone")) != null ||
+		    disabled={editedNote.users.find(hasSharing) != null ||
           adding ||
           removing}
         >{adding ? 'Adding...' : removing ? 'Removing... ' : 'Add'}</button

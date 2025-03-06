@@ -3,9 +3,9 @@ import DisclaimerCopy from "./DisclaimerCopy.svelte";
 import Spinner from "./Spinner.svelte";
 import "../lib/web3modal";
 import Header from "./Header.svelte";
-import type { SiweIdentityContextType } from "ic-siwe-js";
+import { siweIdentityStore } from "../store/siwe";
 
-export let auth: SiweIdentityContextType;
+export const auth = siweIdentityStore.store;
 </script>
 
 <Header/>
@@ -24,21 +24,21 @@ export let auth: SiweIdentityContextType;
         A safe place to store and share your personal IP.
       </p>
 
-      {#if auth.isInitializing || auth.isPreparingLogin}
+      {#if $auth.isInitializing || $auth.isPreparingLogin}
         <div class="text-lg font-semibold mt-8">
           <Spinner />
           Initializing...
         </div>
-      {:else if auth.isPrepareLoginSuccess && !auth.isLoginSuccess}
+      {:else if $auth.isPrepareLoginSuccess && !$auth.isLoginSuccess}
         <div class="text-lg font-semibold">
           <Spinner />
           Synchronizing... Please keep the app open on a device that's already added.
         </div>
-      {:else if !auth.identityAddress}
-        <button class="btn btn-primary" on:click={() => auth.login()}
+      {:else if !$auth.identityAddress}
+        <button class="btn btn-primary" on:click={() => $auth.login()}
           >Login to Store and Share your IP</button
         >
-      {:else if auth.isLoginError || auth.isPrepareLoginError}
+      {:else if $auth.isLoginError || $auth.isPrepareLoginError}
         <div class="text-lg font-semibold mt-8">An error occurred.</div>
       {/if}
 
