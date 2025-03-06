@@ -25,4 +25,5 @@ serde = "1.0.218"
 ic-types = "0.7.0"
 hex = "0.4.3"
 chrono = "0.4.40"
-ic-vetkd-notes = "0.1.9" }
+ic-vetkd-notes = "0.1.9"
+
