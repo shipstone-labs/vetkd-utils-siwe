@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🚀 Run release-please
+        if: github.event_name != 'pull_request'
         uses: googleapis/release-please-action@v4
         id: release-please
         with:
