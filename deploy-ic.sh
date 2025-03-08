@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e  # Exit on error
-
+echo "Deploying to ${NETWORK}"
 if dfx canister id vetkd_notes --network $NETWORK 2>&1 > /dev/null; then
   echo "vetkd_notes already exists"
 else
@@ -37,7 +37,26 @@ else
   echo "vetkd_notes is up to date"
 fi
 
-dfx deploy ic_siwe_provider --network ${NETWORK} --identity $IDENTITY --argument "$(cat <<EOF
+# dfx canister install ic_siwe_provider --network "$NETWORK" --identity "$IDENTITY" --mode upgrade --argument "$(cat <<EOF
+# (
+#   record {
+#     domain = "$DOMAIN";
+#     uri = "$URI";
+#     salt = "$SALT";
+#     chain_id = opt $CHAIN_ID;
+#     scheme = opt "https";
+#     statement = opt "$STATEMENT";
+#     sign_in_expires_in = opt 300000000000;
+#     session_expires_in = opt 604800000000000;
+#     targets = opt vec {
+#         "$(dfx canister id ic_siwe_provider --network $NETWORK)";
+#         "$(dfx canister id vetkd_notes --network $NETWORK)";
+#     };
+#   }
+# )
+# EOF
+# )"
+dfx deploy ic_siwe_provider --upgrade-unchanged --network ${NETWORK} --identity $IDENTITY --argument "$(cat <<EOF
 (
     record {
         domain = "$DOMAIN";

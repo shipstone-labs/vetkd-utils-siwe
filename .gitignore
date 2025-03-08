@@ -4,6 +4,8 @@ node_modules
 .turbo
 .env*
 !.env.example
+!.env.local.example
+
 docs
 
 # These should be saved somewhere, but committing
