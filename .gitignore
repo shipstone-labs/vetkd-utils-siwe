@@ -3,4 +3,10 @@ node_modules
 /.dfx
 .turbo
 .env*
+!.env.example
 docs
+
+# These should be saved somewhere, but committing
+# them to a public repo is confusing to other
+# developers. They should alway use their own ids.
+canister_ids.json
