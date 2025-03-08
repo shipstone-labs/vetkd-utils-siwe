@@ -24,14 +24,6 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-
-      - name: 🚀 Run release-please
-        if: github.event_name != 'pull_request'
-        uses: googleapis/release-please-action@v4
-        id: release-please
-        with:
-          config-file: .github/release-please-config.json # ✅ Explicitly specify the config file
-          manifest-file: .github/release-please-manifest.json
       
       - name: 🏗️ Setup rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -63,4 +55,3 @@ jobs:
     
       - name: 🏗️ Build
         run: pnpm build:release
-        
