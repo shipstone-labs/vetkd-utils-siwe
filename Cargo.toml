@@ -2,9 +2,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "packages/vetkd-notes-canister",
-    "packages/vetkd-notes",
-    "packages/vetkd-notes-client"
+    "packages/vetkd-notes-canister"
 ]
 
 [workspace.package]

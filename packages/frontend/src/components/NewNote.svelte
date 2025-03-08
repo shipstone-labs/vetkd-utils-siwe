@@ -1,7 +1,6 @@
 <script lang="ts">
 import { onDestroy } from "svelte";
 import { Editor, placeholder } from "typewriter-editor";
-import { auth } from "../store/auth";
 import { draft } from "../store/draft";
 import { addNote, refreshNotes } from "../store/notes";
 import { addNotification, showError } from "../store/notifications";
@@ -9,6 +8,7 @@ import Header from "./Header.svelte";
 import NoteEditor from "./NoteEditor.svelte";
 import TagEditor from "./TagEditor.svelte";
 import { noteFromContent } from "@shipstone-labs/ic-vetkd-notes-client";
+import { siweIdentityStore } from "../store/siwe";
 
 let creating = false;
 let tags: string[] = $draft.tags;
@@ -20,19 +20,18 @@ const editor = new Editor({
 	html: $draft.content,
 });
 
+const store = siweIdentityStore.store;
+
 async function add() {
-	if ($auth.state !== "initialized") {
+	const { isLoginSuccess, identity, actor, crypto } = $store;
+	if (!isLoginSuccess || !identity || !actor || !crypto) {
 		return;
 	}
 	creating = true;
 	await addNote(
-		noteFromContent(
-			editor.getHTML(),
-			tags,
-			$auth.client.getIdentity().getPrincipal(),
-		),
-		$auth.actor,
-		$auth.crypto,
+		noteFromContent(editor.getHTML(), tags, identity.getPrincipal()),
+		actor,
+		crypto,
 	)
 		.catch((e) => {
 			showError(e, "Could not add note.");
@@ -48,7 +47,7 @@ async function add() {
 	addNotification({ type: "success", message: "IP Doc added successfully" });
 
 	// refresh notes in the background
-	refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+	refreshNotes(actor, crypto).catch((e) =>
 		showError(e, "Could not refresh notes."),
 	);
 }

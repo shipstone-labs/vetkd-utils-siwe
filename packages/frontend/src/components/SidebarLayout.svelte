@@ -1,11 +1,12 @@
 <script lang="ts">
-import { auth, logout } from "../store/auth";
 import FaPlusSquare from "svelte-icons/fa/FaPlusSquare.svelte";
 import FaBook from "svelte-icons/fa/FaBook.svelte";
 import FaMobileAlt from "svelte-icons/fa/FaMobileAlt.svelte";
 import FaDoorOpen from "svelte-icons/fa/FaDoorOpen.svelte";
 import Disclaimer from "./Disclaimer.svelte";
 import { copy } from "svelte-copy";
+import { siweIdentityStore } from "../store/siwe";
+const store = siweIdentityStore.store;
 </script>
 
 <div class="bg-white dark:bg-base-200 drawer drawer-mobile min-h-screen">
@@ -41,7 +42,7 @@ import { copy } from "svelte-copy";
       </div>
       <div class="border-b">
         <div class="pl-4">My Principal</div>
-        <div class="pl-4"><small>{$auth.client.getIdentity().getPrincipal()}</small><button use:copy="{$auth.client.getIdentity().getPrincipal().toString()}"><svg width="18px" height="18px" viewBox="0 0 24 24" id="magicoon-Filled" xmlns="http://www.w3.org/2000/svg"><title>copy</title><g id="copy-Filled"><path id="copy-Filled-2" data-name="copy-Filled" fill="currentColor" d="M11,19.5h5.7A3.978,3.978,0,0,1,13,22H6a4,4,0,0,1-4-4V10A4.007,4.007,0,0,1,5.5,6.03V14A5.51,5.51,0,0,0,11,19.5ZM19.5,6.25h2.12A1.638,1.638,0,0,0,21.41,6L18,2.59a1.156,1.156,0,0,0-.25-.2V4.5A1.758,1.758,0,0,0,19.5,6.25Zm0,1.5A3.256,3.256,0,0,1,16.25,4.5V2H11A4,4,0,0,0,7,6v8a4,4,0,0,0,4,4h7a4,4,0,0,0,4-4V7.75Z"/></g></svg></button></div>
+        <div class="pl-4"><small>{$store.identity?.getPrincipal()}</small><button use:copy="{$store.identity?.getPrincipal().toString()}"><svg width="18px" height="18px" viewBox="0 0 24 24" id="magicoon-Filled" xmlns="http://www.w3.org/2000/svg"><title>copy</title><g id="copy-Filled"><path id="copy-Filled-2" data-name="copy-Filled" fill="currentColor" d="M11,19.5h5.7A3.978,3.978,0,0,1,13,22H6a4,4,0,0,1-4-4V10A4.007,4.007,0,0,1,5.5,6.03V14A5.51,5.51,0,0,0,11,19.5ZM19.5,6.25h2.12A1.638,1.638,0,0,0,21.41,6L18,2.59a1.156,1.156,0,0,0-.25-.2V4.5A1.758,1.758,0,0,0,19.5,6.25Zm0,1.5A3.256,3.256,0,0,1,16.25,4.5V2H11A4,4,0,0,0,7,6v8a4,4,0,0,0,4,4h7a4,4,0,0,0,4-4V7.75Z"/></g></svg></button></div>
       </div>
       <ul
         class="p-4 overflow-y-auto menu w-full bg-base-100 flex-1 flex flex-col"
@@ -64,7 +65,7 @@ import { copy } from "svelte-copy";
         </li>
         <li class="flex-1" />
         <li>
-          <button on:click={() => logout()}>
+          <button on:click={() => $store.logout()}>
             <span class="w-6 h-6 p-1 mr-2">
               <FaDoorOpen />
             </span>

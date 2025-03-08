@@ -7,8 +7,10 @@ import {
   type NoteModel,
   serialize,
 } from "@shipstone-labs/ic-vetkd-notes-client";
-import { auth } from "./auth";
 import { showError } from "./notifications";
+import { siweIdentityStore } from "./siwe";
+
+const store = siweIdentityStore.store;
 
 export const notesStore = writable<
   | {
@@ -94,8 +96,9 @@ export async function removeUser(
   await actor.remove_user(id, user ? [user] : []);
 }
 
-auth.subscribe(async ($auth) => {
-  if ($auth.state === "initialized") {
+store.subscribe(async ($store) => {
+  const { identity, actor, crypto, isLoginSuccess } = $store;
+  if (identity && actor && crypto && isLoginSuccess) {
     if (notePollerHandle !== null) {
       clearInterval(notePollerHandle);
       notePollerHandle = null;
@@ -105,12 +108,12 @@ auth.subscribe(async ($auth) => {
       state: "loading",
     });
     try {
-      await refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+      await refreshNotes(actor, crypto).catch((e) =>
         showError(e, "Could not poll notes.")
       );
 
       notePollerHandle = setInterval(async () => {
-        await refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+        await refreshNotes(actor, crypto).catch((e) =>
           showError(e, "Could not poll notes.")
         );
       }, 3000);
@@ -119,7 +122,7 @@ auth.subscribe(async ($auth) => {
         state: "error",
       });
     }
-  } else if ($auth.state === "anonymous" && notePollerHandle !== null) {
+  } else if ((!isLoginSuccess || !identity) && notePollerHandle !== null) {
     clearInterval(notePollerHandle);
     notePollerHandle = null;
     notesStore.set({

@@ -1,8 +1,11 @@
 <script lang="ts">
-import type { NoteModel } from "@shipstone-labs/vetkd-notes-client";
-import { auth } from "../store/auth";
+import type {
+	NoteModel,
+	PrincipalRule,
+} from "@shipstone-labs/ic-vetkd-notes-client";
 import { addUser, refreshNotes, removeUser } from "../store/notes";
 import { addNotification, showError } from "../store/notifications";
+import { siweIdentityStore } from "../store/siwe";
 
 export let editedNote: NoteModel;
 // biome-ignore lint/style/useConst: <explanation>
@@ -10,9 +13,12 @@ export let ownedByMe = false;
 
 import { createEventDispatcher } from "svelte";
 
+const store = siweIdentityStore.store;
 const dispatch = createEventDispatcher();
 
 let newSharing = "";
+const hasSharing = (u: [string, PrincipalRule]) =>
+	(u[0] || "everyone") === (newSharing || "everyone");
 // biome-ignore lint/style/useConst: <explanation>
 let newWhenValue = "";
 // biome-ignore lint/style/useConst: <explanation>
@@ -33,37 +39,45 @@ function dateValue(input: string): bigint | null {
 }
 
 async function add() {
-  if (!$auth.actor 
-    || !$auth.crypto
-  ) {
-    throw new Error("Not authenticated");
-  }
+	if (!$store.actor || !$store.crypto) {
+		throw new Error("Not authenticated");
+	}
 	adding = true;
 	try {
 		await addUser(
 			editedNote.id,
 			newSharingChecked ? null : newSharing || null,
 			dateValue(newWhenValue),
-			$auth.actor,
+			$store.actor,
 		);
 		addNotification({
 			type: "success",
 			message: "User successfully added",
 		});
-    const value = dateValue(newWhenValue)
+		const value = dateValue(newWhenValue);
 		editedNote.users = [
-			...editedNote.users.filter((u) => u[0] !== (newSharing || "everyone")),
-			[newSharing, {when: value ?[value]:[], was_read: false }]
+			...editedNote.users.filter(
+				(u: [string, PrincipalRule]) => u[0] !== (newSharing || "everyone"),
+			),
+			[newSharing, { when: value ? [value] : [], was_read: false }],
 		];
 		const when = newWhenChecked
 			? null
-			: value ? Number(value / BigInt(1000000)) : null;
+			: value
+				? Number(value / BigInt(1000000))
+				: null;
 		dispatch("message", {
 			action: "share",
 			user: newSharingChecked ? null : newSharing || "everyone",
 			rule: newSharingChecked
-				? ["everyone", {when: newWhenChecked && value ? [value] : [], was_read: false}]
-				: [newSharing, {when: newWhenChecked && value ? [value] : [], was_read: false}],
+				? [
+						"everyone",
+						{ when: newWhenChecked && value ? [value] : [], was_read: false },
+					]
+				: [
+						newSharing,
+						{ when: newWhenChecked && value ? [value] : [], was_read: false },
+					],
 			created_at: BigInt(Date.now()) * BigInt(1000000),
 		});
 		newSharing = "";
@@ -75,21 +89,22 @@ async function add() {
 	} finally {
 		adding = false;
 	}
-	await refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+	await refreshNotes($store.actor, $store.crypto).catch((e) =>
 		showError(e, "Could not refresh notes."),
 	);
 }
 
 async function remove(sharing: string) {
-  if (!$auth.actor 
-    || !$auth.crypto
-  ) {
-    throw new Error("Not authenticated");
-  }
+	if (!$store.actor || !$store.crypto) {
+		throw new Error("Not authenticated");
+	}
 	removing = true;
 	try {
-		await removeUser(editedNote.id, sharing, $auth.actor);
-		editedNote.users = editedNote.users.filter((u) => (u[0] || "everyone") !== (sharing || "everyone"));
+		await removeUser(editedNote.id, sharing, $store.actor);
+		editedNote.users = editedNote.users.filter(
+			(u: [string, PrincipalRule]) =>
+				(u[0] || "everyone") !== (sharing || "everyone"),
+		);
 		addNotification({
 			type: "success",
 			message: "User successfully removed",
@@ -105,7 +120,7 @@ async function remove(sharing: string) {
 	} finally {
 		removing = false;
 	}
-	await refreshNotes($auth.actor, $auth.crypto).catch((e) =>
+	await refreshNotes($store.actor, $store.crypto).catch((e) =>
 		showError(e, "Could not refresh notes."),
 	);
 }
@@ -190,7 +205,7 @@ async function remove(sharing: string) {
           {!ownedByMe ? 'hidden' : ''}
           {adding || removing ? 'loading' : ''}"
         on:click={add}
-        disabled={editedNote.users.find((u) => (u[0] || "everyone") === (newSharing || "everyone")) != null ||
+		    disabled={editedNote.users.find(hasSharing) != null ||
           adding ||
           removing}
         >{adding ? 'Adding...' : removing ? 'Removing... ' : 'Add'}</button

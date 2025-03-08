@@ -1,5 +1,7 @@
 import { writable } from "svelte/store";
-import { auth } from "./auth";
+import { siweIdentityStore } from "./siwe";
+
+const store = siweIdentityStore.store;
 
 interface DraftModel {
   content: string;
@@ -26,8 +28,8 @@ draft.subscribe((draft) => {
   localStorage.setItem("draft", JSON.stringify(draft));
 });
 
-auth.subscribe(($auth) => {
-  if ($auth.state === "anonymous") {
+store.subscribe(($store) => {
+  if (!$store.identity) {
     draft.set(initialDraft);
   }
 });

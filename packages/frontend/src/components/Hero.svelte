@@ -1,21 +1,14 @@
 <script lang="ts">
-import { type AuthState, login } from "../store/auth";
 import DisclaimerCopy from "./DisclaimerCopy.svelte";
 import Spinner from "./Spinner.svelte";
+import "../lib/web3modal";
+import Header from "./Header.svelte";
+import { siweIdentityStore } from "../store/siwe";
 
-export let auth: Extract<
-	AuthState,
-	{
-		state:
-			| "initializing-auth"
-			| "initializing-crypto"
-			| "synchronizing"
-			| "anonymous"
-			| "error";
-	}
->;
+export const auth = siweIdentityStore.store;
 </script>
 
+<Header/>
 <div class="hero min-h-screen pt-8 sm:pt-0 content-start sm:content-center">
   <div class="text-center hero-content ">
     <div class="max-w-xl ">
@@ -31,21 +24,21 @@ export let auth: Extract<
         A safe place to store and share your personal IP.
       </p>
 
-      {#if auth.state === 'initializing-auth' || auth.state === 'initializing-crypto'}
+      {#if $auth.isInitializing || $auth.isPreparingLogin}
         <div class="text-lg font-semibold mt-8">
           <Spinner />
           Initializing...
         </div>
-      {:else if auth.state === 'synchronizing'}
+      {:else if $auth.isPrepareLoginSuccess && !$auth.isLoginSuccess}
         <div class="text-lg font-semibold">
           <Spinner />
           Synchronizing... Please keep the app open on a device that's already added.
         </div>
-      {:else if auth.state === 'anonymous'}
-        <button class="btn btn-primary" on:click={() => login()}
+      {:else if !$auth.identityAddress}
+        <button class="btn btn-primary" on:click={() => $auth.login()}
           >Login to Store and Share your IP</button
         >
-      {:else if auth.state === 'error'}
+      {:else if $auth.isLoginError || $auth.isPrepareLoginError}
         <div class="text-lg font-semibold mt-8">An error occurred.</div>
       {/if}
 
