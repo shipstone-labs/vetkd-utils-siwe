@@ -96,66 +96,25 @@ dfx start --clean
 If you see an error `Failed to set socket of tcp builder to 0.0.0.0:8000`, make sure that the port `8000` is not occupied, e.g., by the previously run Docker command (you might want to stop the Docker daemon whatsoever for this step).
 :::
 
-### Step 5:. Deploy the encrypted notes backend canister:
+### Step 5:. Deploy canisters
 
+Copy the .env.local.example file and call it .env.local.
+Make any changes you'd like, but it's assuming
+to be running on the local network. There is a .env.example for ic deployment with equivalent values.
+
+Deploy/compile/generate the canisters
 ```sh
-dfx deploy "vetkd_notes"
-```
-⚠️ Before deploying the Rust canister, you should first run `rustup target add wasm32-unknown-unknown`.
-
-### Step 6: Install a local [SIWE Provider](https://github.com/kristoferlund/ic-siwe/tree/main/packages/ic_siwe_provider) canister:
-
-:::info
-If you have multiple `dfx` identities set up, ensure you are using the identity you intend to use with the `--identity` flag.
-:::
-   1. To install and deploy a canister run:
-      ```sh
-      dfx canister create ic_siwe_provider
-      dfx deploy ic_siwe_provider --argument $'(
-          record {
-              domain = "127.0.0.1";
-              uri = "http://127.0.0.1:5173";
-              salt = "mysecretsalt123";
-              chain_id = opt 1;
-              scheme = opt "http";
-              statement = opt "Login to the app";
-              sign_in_expires_in = opt 300000000000;
-              session_expires_in = opt 604800000000000;
-              targets = opt vec {
-                  "'$(dfx canister id ic_siwe_provider)'";
-                  "'$(dfx canister id vetkd_notes)'";
-              };
-          }
-      )'
-      ```
-
-### Step 7: Install the vetKD system API canister:
-   1. Ensure the Canister SDK (dfx) uses the canister ID that is hard-coded in the backend canister Rust source code. NOTE: This was internally renamed as chainkey_testing_canister.
-      ```sh
-      # NOTE: This is the canister ID specified in the source code.
-      # for your own deployment you have to create a new one or wait
-      # until the final release of the actual system api is finished and released.
-      dfx canister create vetkd_system_api --specified-id nn664-2iaaa-aaaao-a3tqq-cai
-      ```
-   2. Install and deploy the canister:
-      ```sh
-      dfx deploy vetkd_system_api
-      ```
-
-### Step 8: Update the generated canister interface bindings: 
-
-```sh
-dfx generate "vetkd_notes"
+pnpm deploy:local
 ```
 
-### Step 9: Deploy the frontend canister:
-```sh
-dfx deploy vetkd_www
-```
-You can check its URL with `pnpm print-dfx-www`.
+### Step 10: Open the frontend (Optional)
 
-
-### Step 10: Open the frontend:
+You can also run `pnpm print-dfx-www` to see how
+to access the local canister. If you want to use
+this you should update .env.local and then re-deploy
+so that the signature domain and uri matches.
+The default values assume local deployment using
+`pnpm dev` i.e. address is at `pnpm print-local-www`
 
    1. Start the local development server, which also supports hot-reloading:
       ```sh
