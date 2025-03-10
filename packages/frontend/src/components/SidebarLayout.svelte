@@ -65,7 +65,7 @@ const store = siweIdentityStore.store;
         </li>
         <li class="flex-1" />
         <li>
-          <button on:click={() => $store.logout()}>
+          <button on:click={() => $store.clear()}>
             <span class="w-6 h-6 p-1 mr-2">
               <FaDoorOpen />
             </span>

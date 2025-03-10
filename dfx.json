@@ -32,7 +32,7 @@
       "bind": "0.0.0.0:8000",
       "type": "ephemeral",
       "canister_ids": {
-        "vetkd_system_api": "nn664-2iaaa-aaaao-a3tqq-cai"
+        "vetkd_system_api": "cl5di-6yaaa-aaaap-qpxoq-cai"
       }
     }
   },

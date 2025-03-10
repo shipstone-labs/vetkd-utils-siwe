@@ -1,10 +1,11 @@
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
+use ic_cdk::api::management_canister::main::CanisterId;
 use ic_cdk_macros::*;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{
     storable::Bound, DefaultMemoryImpl, StableBTreeMap, StableCell, Storable,
 };
-use ic_vetkd_notes::{vetkd_system_api_canister_id, EncryptedNote, NoteId, EVERYONE};
+use ic_vetkd_notes::{EncryptedNote, NoteId, EVERYONE};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -394,6 +395,13 @@ use vetkd_types::{
     VetKDCurve, VetKDDeriveEncryptedKeyRequest, VetKDEncryptedKeyReply, VetKDKeyId,
     VetKDPublicKeyReply, VetKDPublicKeyRequest,
 };
+
+const VETKD_SYSTEM_API_CANISTER_ID: &str = "cl5di-6yaaa-aaaap-qpxoq-cai";
+
+pub fn vetkd_system_api_canister_id() -> CanisterId {
+    use std::str::FromStr;
+    CanisterId::from_str(VETKD_SYSTEM_API_CANISTER_ID).expect("failed to create canister ID")
+}
 
 #[update]
 async fn symmetric_key_verification_key_for_note() -> String {

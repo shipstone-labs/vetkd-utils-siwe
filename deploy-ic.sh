@@ -31,6 +31,8 @@ touch ./packages/vetkd-notes-canister/src/lib.rs
 dfx build vetkd_notes --network $NETWORK
 LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/vetkd_notes/vetkd_notes.wasm | awk '{ print "0x" $1 }')
 REMOTE_HASH=$(dfx canister info vetkd_notes --network "ic" | grep 'Module hash' | awk '{ print $3 }')
+echo "$LOCAL_HASH"
+echo "$REMOTE_HASH"
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
   dfx deploy vetkd_notes --network $NETWORK --identity $IDENTITY
 else
