@@ -31,8 +31,6 @@ touch ./packages/vetkd-notes-canister/src/lib.rs
 dfx build vetkd_notes --network $NETWORK
 LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/vetkd_notes/vetkd_notes.wasm | awk '{ print "0x" $1 }')
 REMOTE_HASH=$(dfx canister info vetkd_notes --network "ic" | grep 'Module hash' | awk '{ print $3 }')
-echo "$LOCAL_HASH"
-echo "$REMOTE_HASH"
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
   dfx deploy vetkd_notes --network $NETWORK --identity $IDENTITY
 else
@@ -87,10 +85,11 @@ else
 fi
 dfx generate vetkd_notes --network $NETWORK --identity $IDENTITY
 
-LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/vetkd_system_api/vetkd_system_api.wasm | awk '{ print "0x" $1 }')
-REMOTE_HASH=$(dfx canister info vetkd_system_api --network "ic" | grep 'Module hash' | awk '{ print $3 }')
 touch ./packages/frontend/src/main.js
 dfx build vetkd_www --network $NETWORK
+rm -rf ./packages/frontend/build/main.js.map
+LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/vetkd_www/vetkd_www.wasm | awk '{ print "0x" $1 }')
+REMOTE_HASH=$(dfx canister info vetkd_www --network "ic" | grep 'Module hash' | awk '{ print $3 }')
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
   dfx deploy vetkd_www --network $NETWORK --identity $IDENTITY
 else
