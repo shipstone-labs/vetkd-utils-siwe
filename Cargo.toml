@@ -2,7 +2,8 @@
 [workspace]
 resolver = "2"
 members = [
-    "packages/vetkd-notes-canister"
+    "packages/vetkd-notes-canister",
+    "packages/icp_nft_backend"
 ]
 
 [workspace.package]

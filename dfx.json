@@ -1,12 +1,18 @@
 {
   "canisters": {
+    "icp_nft_backend": {
+      "dependencies": ["vetkd_system_api"],
+      "type": "rust",
+      "candid": "packages/icp_nft_backend/icp_nft_backend.did",
+      "package": "icp_nft_backend"
+    },
     "vetkd_system_api": {
       "candid": "chainkey_testing_canister.did",
       "type": "custom",
       "wasm": "chainkey_testing_canister.wasm"
     },
     "vetkd_notes": {
-      "dependencies": ["vetkd_system_api"],
+      "dependencies": ["vetkd_system_api", "icp_nft_backend"],
       "type": "rust",
       "candid": "packages/vetkd-notes-canister/vetkd_notes_canister.did",
       "package": "vetkd-notes-canister",

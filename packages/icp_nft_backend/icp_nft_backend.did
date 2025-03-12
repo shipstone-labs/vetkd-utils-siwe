@@ -1,0 +1,63 @@
+type Event = variant {
+  Mint : record {
+    token_id : nat64;
+    owner : principal;
+    amount : nat64;
+    timestamp : nat64;
+  };
+  Transfer : record {
+    token_id : nat64;
+    from : principal;
+    to : principal;
+    amount : nat64;
+    timestamp : nat64;
+  };
+  Burn : record {
+    token_id : nat64;
+    owner : principal;
+    amount : nat64;
+    timestamp : nat64;
+  };
+  ApprovalForAll : record {
+    owner : principal;
+    operator : principal;
+    approved : bool;
+    timestamp : nat64;
+  };
+};
+
+type Result = variant {
+  Ok : null;
+  Err : text;
+};
+
+type UriResult = variant {
+  Ok : opt text;
+  Err : text;
+};
+
+type MetadataResult = variant {
+  Ok : text;
+  Err : text;
+};
+
+service : {
+  // Original functions
+  mint : (nat64, text, principal, nat64) -> ();
+  balance_of : (principal, nat64) -> (nat64) query;
+  transfer : (nat64, principal, principal, nat64) -> (Result);
+  
+  // Enhanced functions
+  mint_with_uri : (nat64, text, text, principal, nat64) -> ();
+  batch_balance_of : (principal, vec nat64) -> (vec nat64) query;
+  batch_transfer : (vec nat64, principal, principal, vec nat64) -> (Result);
+  burn : (nat64, principal, nat64) -> (Result);
+  set_approval_for_all : (principal, bool) -> (Result);
+  is_approved_for_all_query : (principal, principal) -> (bool) query;
+  get_metadata : (nat64) -> (MetadataResult) query;
+  token_uri : (nat64) -> (UriResult) query;
+  update_metadata : (nat64, text) -> (Result);
+  update_uri : (nat64, text) -> (Result);
+  tokens_of_owner : (principal) -> (vec record { nat64; nat64 }) query;
+  get_events : (nat) -> (vec Event) query;
+}

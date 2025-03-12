@@ -6,6 +6,11 @@ if dfx canister id vetkd_notes --network $NETWORK 2>&1 > /dev/null; then
 else
   dfx canister create vetkd_notes --network $NETWORK --identity $IDENTITY
 fi
+if dfx canister id icp_nft_backend --network $NETWORK 2>&1 > /dev/null; then
+  echo "icp_nft_backend already exists"
+else
+  dfx canister create icp_nft_backend --network $NETWORK --identity $IDENTITY
+fi
 if dfx canister id ic_siwe_provider --network $NETWORK 2>&1 > /dev/null; then
   echo "ic_siwe_provider already exists"
 else
@@ -25,6 +30,16 @@ if dfx canister id vetkd_system_api --network $NETWORK 2>&1 > /dev/null; then
   echo "vetkd_system_api already exists"
 else
   dfx canister create vetkd_system_api --network $NETWORK --identity $IDENTITY
+fi
+
+touch ./packages/icp_nft_backend/src/lib.rs
+dfx build icp_nft_backend --network $NETWORK
+LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/icp_nft_backend/icp_nft_backend.wasm | awk '{ print "0x" $1 }')
+REMOTE_HASH=$(dfx canister info icp_nft_backend --network "ic" | grep 'Module hash' | awk '{ print $3 }')
+if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+  dfx deploy icp_nft_backend --network $NETWORK --identity $IDENTITY
+else
+  echo "icp_nft_backend is up to date"
 fi
 
 touch ./packages/vetkd-notes-canister/src/lib.rs
@@ -87,7 +102,7 @@ dfx generate vetkd_notes --network $NETWORK --identity $IDENTITY
 
 touch ./packages/frontend/src/main.js
 dfx build vetkd_www --network $NETWORK
-rm -rf ./packages/frontend/build/main.js.map
+rm -rf ./packages/frontend/public/build/main.js.map
 LOCAL_HASH=$(sha256sum .dfx/$NETWORK/canisters/vetkd_www/vetkd_www.wasm | awk '{ print "0x" $1 }')
 REMOTE_HASH=$(dfx canister info vetkd_www --network "ic" | grep 'Module hash' | awk '{ print $3 }')
 if [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
